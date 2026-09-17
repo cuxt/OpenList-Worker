@@ -430,7 +430,7 @@ publicRouter.post("/init/setup", async (c) => {
     return c.json({ code: 400, message: "username is required", data: null }, 400)
   }
   if (!password) {
-    return c.json({ code: 400, message: "password is required", data: null }, 400)
+    return c.json({ code: 400, message: "password is required", data: body }, 400)
   }
   if (password.length < 4) {
     return c.json(
