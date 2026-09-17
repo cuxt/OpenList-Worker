@@ -443,9 +443,14 @@ publicRouter.post("/init/setup", async (c) => {
   if (!db.users) db.users = []
   // 安全护栏：若读取持久化存储失败（当前 db 只是不可信空壳），绝不能继续初始化，
   // 否则会把空库写回存储、覆盖真实配置（即「数据库被清空」的根因）。
-  if (!isDbTrusted()) {
+  // 区分两种情况：dbLastLoadError 有值 = 真的读取失败；dbLastLoadError 为 null 但 dbTrusted 为 false = 存储为空（全新部署），应该允许初始化。
+  const { getDbLoadError } = await import("../internal/model/db")
+  const loadError = getDbLoadError()
+  console.log("[DEBUG] init/setup isDbTrusted:", isDbTrusted(), "loadError:", loadError)
+  if (!isDbTrusted() && loadError !== null) {
     console.error(
-      "[DB] init/setup rejected: database could not be loaded from the persistence backend",
+      "[DB] init/setup rejected: database could not be loaded from the persistence backend, error:",
+      loadError,
     )
     return c.json(
       {
